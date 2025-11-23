@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+    <title>WebGIS Geoserver + Leaflet</title>
+
+    <style>
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="lib/L.Geoserver.js"></script>
+
+    <script>
+
+        var map = L.map("map").setView([-8.528001, 122.695547], 11);
+
+        // OSM
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19
+        }).addTo(map);
+
+        // WMS: Desa
+        var desa = L.Geoserver.wms("http://localhost:8080/geoserver/pgweb_10/wms", {
+            layers: "pgweb_10:batas_desa",
+            transparent: true
+        }).addTo(map);
+
+        // WMS: Jalan
+        var jalan = L.Geoserver.wms("http://localhost:8080/geoserver/pgweb_10/wms", {
+            layers: "pgweb_10:jalan",
+            transparent: true
+        }).addTo(map);
+
+        // WMS: Penduduk Sleman
+        var kecamatan = L.Geoserver.wms("http://localhost:8080/geoserver/pgweb_10/wms", {
+            layers: "pgweb_10:penduduk_sleman",
+            transparent: true
+        }).addTo(map);
+
+        // WFS: Titik Kecamatan
+        var titik_kecamatan = L.Geoserver.wfs("http://localhost:8080/geoserver/pgweb_10/wfs", {
+            layers: "pgweb_10:toponimi",
+            style: {
+                color: "red",
+                fillColor: "yellow",
+                fillOpacity: 0.7
+            },
+            onEachFeature: function (feature, ctx) {
+                ctx.bindPopup(
+                    "<b>Nama:</b> " + feature.properties.nama +
+                    "<br><b>FCode:</b> " + feature.properties.fcode
+                );
+            }
+        }).addTo(map);
+
+        // Layer control
+        L.control.layers(null, {
+            "Administrasi Desa": desa,
+            "Jalan": jalan,
+            "Data Kecamatan": kecamatan,
+            "Nama Kecamatan (WFS)": titik_kecamatan
+        }).addTo(map);
+
+    </script>
+</body>
+
+</html>
